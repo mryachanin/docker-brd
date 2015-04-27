@@ -35,7 +35,6 @@ def main(args):
 
     # run the supplied command
     executor.execute(args['command'])
-    exit(0)
 
 
 if __name__ == "__main__":

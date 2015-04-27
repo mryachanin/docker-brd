@@ -47,4 +47,4 @@ def __printUsageAndExit(message=''):
     if message != '':
         print(message)
     print('Usage: ./docker-brd  command  deployment-name')
-    exit(1)
+    sys.exit(1)
