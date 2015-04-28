@@ -21,6 +21,12 @@ class Option(Enum):
     image = ''
 
 
+class DeploymentConfigKey(Enum):
+    OPTIONS = 'options'
+    ARGS = 'args'
+    PRE_TASKS = 'preTasks'
+    POST_TASKS = 'postTasks'
+
 class Path(Enum):
     """ Stores system paths """
     DEPLOYMENTS = '/home/mryachanin/.config/docker-brd/deployments.yaml'

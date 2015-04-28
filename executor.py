@@ -3,35 +3,66 @@ import subprocess
 from constants import Command, Option
 
 
+class Deployment(object):
+    def __init__(self, command, preTasks, postTasks):
+        self.command = command
+        self.preTasks = preTasks
+        self.postTasks = postTasks
+
+    def getCommand(self):
+        return self.command
+
+    def getPreTasks(self):
+        return self.preTasks
+
+    def getPostTasks(self):
+        return self.postTasks
+
+
 class Executor(object):
     def __init__(self, config):
         self.commands = {}
-        self.config = config.getConfig()
 
-        # BUILD
-        if self.config[Command.BUILD.value]:
-            self.generateCommand(Command.BUILD)
+        for key, command in Command.__members__.items():
+            if config.getConfig(command.value) != None:
+                newCommand = self.generateCommand(command, config)
+                self.commands[command] = Deployment(newCommand, config.getPreTasks(command), config.getPostTasks(command))
 
-        # RUN
-        if self.config[Command.RUN.value]:
-            self.generateCommand(Command.RUN)
 
-    def generateCommand(self, command):
-        """ Generates a command by taking a base command and appending relevant options """
-        self.commands[command] = 'docker ' + command.value + ' '
-        for option in self.config[command.value]:
-            for key in option.keys():
-                try:
-                    if isinstance(option[key], list):
-                        for listOption in option[key]:
-                            self.commands[command] += Option[key].value + listOption + ' '
-                    else:
-                        self.commands[command] += Option[key].value + str(option[key]) + ' '
-                except:
-                    print('Invalid key: ' + key)
+    def generateCommand(self, command, config):
+        """ Generates a command by appending relevant options to a base command """
+        newCommand = 'docker ' + command.value + ' '
+        for key, value in config.getOptions(command).items():
+            if isinstance(value, list):
+                for option in value:
+                    newCommand += Option[key].value + option + ' '
+            else:
+                newCommand += Option[key].value + str(value) + ' '
+        
+        for arg in config.getArgs(command):
+            newCommand += arg + ' '
+
+        return newCommand
 
 
     def execute(self, command):
         """ Takes a command enum and executes the command associated with that enum """
-        print('Executing command: ' + self.commands[command])
-        subprocess.call(self.commands[command], shell=True)
+        deployment = self.commands[command]
+        
+        # Execute pre-tasks
+        preTasks = deployment.getPreTasks()
+        if preTasks != None:
+            for task in preTasks:
+                print('Executing: ' + task)
+                subprocess.call(task, shell=True)
+
+        # Execute docker command
+        print('Executing: ' + deployment.getCommand())
+        subprocess.call(deployment.getCommand(), shell=True)
+
+        # Execute post-tasks
+        postTasks = deployment.getPostTasks()
+        if postTasks != None:
+            for task in postTasks:
+                print('Executing: ' + task)
+                subprocess.call(task, shell=True)

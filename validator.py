@@ -7,6 +7,8 @@ from constants import Command
 def validateArguments(args, deployments):
     """ Validates invocation arguments
 
+        args: [command-name, deployment-name]
+
         return: {
             command: (Command),
             configPath: (str)
@@ -27,13 +29,12 @@ def validateArguments(args, deployments):
             message += command.value + ', '
         __printUsageAndExit(message)
 
-    # validate docker config
-    deploymentName = args[1]
-    deployments = deployments.getConfig()
-    if deploymentName not in deployments:
-        __printUsageAndExit('Deployment - ' + deploymentName + ' - not found.')
+    # validate deployment config
+    deploymentConfigPath = deployments.getConfig(args[1])
+    if deploymentConfigPath == None:
+        __printUsageAndExit('Deployment - ' + args[1] + ' - not found.')
 
-    return {'command': command, 'configPath': deployments[deploymentName]}
+    return {'command': command, 'deploymentConfigPath': deploymentConfigPath}
 
 
 def validatePath(path):
