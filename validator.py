@@ -37,6 +37,11 @@ def validateArguments(args, deployments):
     return {'command': command, 'deploymentConfigPath': deploymentConfigPath}
 
 
+def validateDeploymentConfig(deploymentConfig, command):
+    if deploymentConfig.getConfig(command.value) == None:
+        __printUsageAndExit('No config provided for command: ' + command.value)
+
+
 def validatePath(path):
     """ Validates a system path """
     if not os.path.exists(path):

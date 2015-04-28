@@ -46,22 +46,24 @@ class DeploymentConfig(Config):
         super().__init__(configPath)
 
     def getOptions(self, command):
-        if command.value in self.config and DeploymentConfigKey.OPTIONS.value in self.config[command.value]:
+        """ Returns options (optional) """
+        if DeploymentConfigKey.OPTIONS.value in self.config[command.value]:
             return self.config[command.value][DeploymentConfigKey.OPTIONS.value]
         return None
 
     def getArgs(self, command):
-        if command.value in self.config and DeploymentConfigKey.ARGS.value in self.config[command.value]:
-            return self.config[command.value][DeploymentConfigKey.ARGS.value]
-        return None
+        """ Returns args (required) """
+        return self.config[command.value][DeploymentConfigKey.ARGS.value]
 
     def getPreTasks(self, command):
-        if command.value in self.config and DeploymentConfigKey.PRE_TASKS.value in self.config[command.value]:
+        """ Returns pre-tasks (optional) """
+        if DeploymentConfigKey.PRE_TASKS.value in self.config[command.value]:
             return self.config[command.value][DeploymentConfigKey.PRE_TASKS.value]
         return None
 
     def getPostTasks(self, command):
-        if command.value in self.config and DeploymentConfigKey.POST_TASKS.value in self.config[command.value]:
+        """ returns post-tasks (optional) """
+        if DeploymentConfigKey.POST_TASKS.value in self.config[command.value]:
             return self.config[command.value][DeploymentConfigKey.POST_TASKS.value]
         return None
 
@@ -76,6 +78,7 @@ def main(args):
 
     # set up config and executor
     deploymentConfig = DeploymentConfig(args['deploymentConfigPath'])
+    validator.validateDeploymentConfig(deploymentConfig, args['command'])
     executor = Executor(deploymentConfig)
 
     # run the supplied command
