@@ -5,84 +5,25 @@ import sys
 import yaml
 import validator
 
-from constants import Command, Path, DeploymentConfigKey
+from config import Config, DeploymentConfig
+from constants import Path
 from executor import Executor
 
 
-class Config(object):
-    """ Represents a config file written in yaml 
-
-        The config files used here are all maps, 
-        hence the implimentation of getConfig().
-    """
-    def __init__(self, configPath):
-        validator.validatePath(configPath)
-        configFile = open(configPath)
-        self.config = yaml.load(configFile.read())
-        configFile.close()
-        
-    def getConfig(self, key):
-        """ Takes a key and returns the associated config """
-        if key in self.config:
-            return self.config[key]
-        return None
-
-
-class DeploymentConfig(Config):
-    """ Represents a deployment config
-
-        Config is expected to be in the form:
-        command:
-            options:
-                map of options
-            args:
-                - list of args
-            preTasks:
-                - list of pre-tasks
-            postTasks:
-                - list of post-tasks
-    """
-    def __init__(self, configPath):
-        super().__init__(configPath)
-
-    def getOptions(self, command):
-        """ Returns options (optional) """
-        if DeploymentConfigKey.OPTIONS.value in self.config[command.value]:
-            return self.config[command.value][DeploymentConfigKey.OPTIONS.value]
-        return None
-
-    def getArgs(self, command):
-        """ Returns args (required) """
-        return self.config[command.value][DeploymentConfigKey.ARGS.value]
-
-    def getPreTasks(self, command):
-        """ Returns pre-tasks (optional) """
-        if DeploymentConfigKey.PRE_TASKS.value in self.config[command.value]:
-            return self.config[command.value][DeploymentConfigKey.PRE_TASKS.value]
-        return None
-
-    def getPostTasks(self, command):
-        """ returns post-tasks (optional) """
-        if DeploymentConfigKey.POST_TASKS.value in self.config[command.value]:
-            return self.config[command.value][DeploymentConfigKey.POST_TASKS.value]
-        return None
-
-
 def main(args):
-    # validate file containing valid docker-brd deployments
-    validator.validatePath(Path.DEPLOYMENTS.value)
-    deployments = Config(Path.DEPLOYMENTS.value)
+    # validate number of args
+    validator.validateNumArgs(args)
 
-    # validate args
-    args = validator.validateArguments(args, deployments)
-
-    # set up config and executor
-    deploymentConfig = DeploymentConfig(args['deploymentConfigPath'])
-    validator.validateDeploymentConfig(deploymentConfig, args['command'])
-    executor = Executor(deploymentConfig)
+    # make sure deployments config contains the specified deployment
+    deploymentName = args[1]
+    deploymentsConfigObj = Config(Path.DEPLOYMENTS.value)
+    deploymentConfigPath = validator.validateDeploymentsConfig(deploymentsConfigObj, deploymentName)
+    deploymentConfigObj = DeploymentConfig(deploymentConfigPath)
 
     # run the supplied command
-    executor.execute(args['command'])
+    commandName = args[0]
+    executor = Executor(deploymentConfigObj)
+    executor.execute(commandName)
 
 
 if __name__ == "__main__":

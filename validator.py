@@ -4,42 +4,40 @@ import sys
 from constants import Command
 
 
-def validateArguments(args, deployments):
-    """ Validates invocation arguments
+def checkIfCommandInDeploymentConfig(deploymentConfigObj, commandName, assertTrue=False):
+    """ Make sure the deployment config contains the command passed in """
+    deploymentConfig = deploymentConfigObj.getConfig(commandName)
+    if deploymentConfig == None:
+        if assertTrue:
+            __printUsageAndExit('No config provided for command: ' + commandName)
+        return False
+    return True
 
-        args: [command-name, deployment-name]
 
-        return: {
-            command: (Command),
-            configPath: (str)
-        }
-    """
-    # validate number of arguments
-    numArgs = len(args)
-    if numArgs != 2:
+def validateNumArgs(args):
+    """ Validates number of arguments """
+    if len(args) != 2:
         __printUsageAndExit('Invalid number of arguments.')
 
-    # validate command
-    command = None
+
+def validateDeploymentsConfig(deploymentsConfigObj, deploymentName):
+    """ Make sure a deployment config path exists in the deployments config file"""
+    deploymentConfigPath = deploymentsConfigObj.getConfig(deploymentName)
+    if deploymentConfigPath == None:
+        __printUsageAndExit('Deployment not found: ' + deploymentName)
+    return deploymentConfigPath
+
+
+def validateCommand(commandName):
+    """ Make sure a command name is valid """
     try:
-        command = Command(args[0])
+        command = Command(commandName)
     except:
-        message = 'Invalid command. Valid commands are: '
+        message = 'Invalid command: ' + commandName + '.\nValid commands are: '
         for command in Command:
             message += command.value + ', '
         __printUsageAndExit(message)
-
-    # validate deployment config
-    deploymentConfigPath = deployments.getConfig(args[1])
-    if deploymentConfigPath == None:
-        __printUsageAndExit('Deployment - ' + args[1] + ' - not found.')
-
-    return {'command': command, 'deploymentConfigPath': deploymentConfigPath}
-
-
-def validateDeploymentConfig(deploymentConfig, command):
-    if deploymentConfig.getConfig(command.value) == None:
-        __printUsageAndExit('No config provided for command: ' + command.value)
+    return command
 
 
 def validatePath(path):
