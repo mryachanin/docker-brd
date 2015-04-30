@@ -3,11 +3,11 @@
 import readline
 import sys
 import yaml
+import executor
 import validator
 
 from config import Config, DeploymentConfig
 from constants import Path
-from executor import Executor
 
 
 def main(args):
@@ -22,8 +22,7 @@ def main(args):
 
     # run the supplied command
     commandName = args[0]
-    executor = Executor(deploymentConfigObj)
-    executor.execute(commandName)
+    executor.execute(commandName, deploymentConfigObj)
 
 
 if __name__ == "__main__":
